@@ -4,8 +4,8 @@ namespace Plank\Mediable;
 
 use Plank\Mediable\Helpers\File;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Jenssegers\Mongodb\Eloquent\Model;
 
 /**
  * Media Model.
