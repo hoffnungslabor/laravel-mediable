@@ -2,8 +2,8 @@
 
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Filesystem\Filesystem;
-use Plank\Mediable\Media;
 use Orchestra\Testbench\TestCase as BaseTestCase;
+use Plank\Mediable\Media;
 
 class TestCase extends BaseTestCase
 {
@@ -12,13 +12,14 @@ class TestCase extends BaseTestCase
     public function setUp()
     {
         parent::setUp();
-        $this->withFactories(__DIR__.'/_factories');
+        $this->withFactories(__DIR__ . '/_factories');
     }
 
     protected function getPackageProviders($app)
     {
         return [
-            Plank\Mediable\MediableServiceProvider::class
+            Plank\Mediable\MediableServiceProvider::class,
+            Jenssegers\Mongodb\MongodbServiceProvider::class
         ];
     }
 
@@ -35,11 +36,21 @@ class TestCase extends BaseTestCase
             $dotenv = new Dotenv\Dotenv(dirname(__DIR__));
             $dotenv->load();
         }
-        //use in-memory database
+
         $app['config']->set('database.connections.testing', [
-            'driver' => 'sqlite',
-            'database' => ':memory:',
-            'prefix' => ''
+            'driver' => 'mongodb',
+            'host' => 'localhost',
+            'port' => 27017,
+            'database' => 'admin',
+            'username' => 'admin',
+            'password' => 'RfLD),5+7noAsd',
+            'options' => [
+                'database' => 'admin',
+            ],
+            'driver_options' => [
+                'database' => 'admin',
+                'authMechanism' => 'SCRAM-SHA-1',
+            ],
         ]);
         $app['config']->set('database.default', 'testing');
 
@@ -62,7 +73,7 @@ class TestCase extends BaseTestCase
             ],
             's3' => [
                 'driver' => 's3',
-                'key'    => env('S3_KEY'),
+                'key' => env('S3_KEY'),
                 'secret' => env('S3_SECRET'),
                 'region' => env('S3_REGION'),
                 'bucket' => env('S3_BUCKET'),
@@ -111,21 +122,21 @@ class TestCase extends BaseTestCase
         $artisan->call('migrate:refresh');
     }
 
-    protected function useFilesystem($disk)
-    {
-        if (!$this->app['config']->has('filesystems.disks.' . $disk)) {
-            return;
-        }
-        $root = $this->app['config']->get('filesystems.disks.' . $disk . '.root');
-        $filesystem =  $this->app->make(Filesystem::class);
-        $filesystem->cleanDirectory($root);
-    }
-
     protected function useFilesystems()
     {
         $disks = $this->app['config']->get('filesystems.disks');
         foreach ($disks as $disk) {
             $this->useFilesystem($disk);
         }
+    }
+
+    protected function useFilesystem($disk)
+    {
+        if (!$this->app['config']->has('filesystems.disks.' . $disk)) {
+            return;
+        }
+        $root = $this->app['config']->get('filesystems.disks.' . $disk . '.root');
+        $filesystem = $this->app->make(Filesystem::class);
+        $filesystem->cleanDirectory($root);
     }
 }

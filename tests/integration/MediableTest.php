@@ -2,7 +2,6 @@
 
 use Plank\Mediable\Media;
 use Plank\Mediable\MediableCollection;
-use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 class MediableTest extends TestCase
 {
@@ -27,7 +26,7 @@ class MediableTest extends TestCase
     public function test_it_can_attach_one_media_to_multiple_tags()
     {
         $mediable = factory(SampleMediable::class)->create();
-        $media1 = factory(Media::class)->create(['id' => 2]);
+        $media1 = factory(Media::class)->create(['_id' => 2]);
 
         $mediable->attachMedia($media1, 'bar');
         $mediable->attachMedia($media1, 'foo');
@@ -52,8 +51,8 @@ class MediableTest extends TestCase
     public function test_it_can_find_the_first_media()
     {
         $mediable = factory(SampleMediable::class)->create();
-        $media1 = factory(Media::class)->create(['id' => 1]);
-        $media2 = factory(Media::class)->create(['id' => 2]);
+        $media1 = factory(Media::class)->create(['_id' => 1]);
+        $media2 = factory(Media::class)->create(['_id' => 2]);
 
         $mediable->attachMedia($media1, 'foo');
         $mediable->attachMedia($media2, 'foo');
@@ -64,9 +63,9 @@ class MediableTest extends TestCase
     public function test_it_can_find_media_matching_any_tags()
     {
         $mediable = factory(SampleMediable::class)->create();
-        $media1 = factory(Media::class)->create(['id' => 1]);
-        $media2 = factory(Media::class)->create(['id' => 2]);
-        $media3 = factory(Media::class)->create(['id' => 3]);
+        $media1 = factory(Media::class)->create(['_id' => 1]);
+        $media2 = factory(Media::class)->create(['_id' => 2]);
+        $media3 = factory(Media::class)->create(['_id' => 3]);
 
         $mediable->attachMedia($media1, 'foo');
         $mediable->attachMedia($media1, 'bar');
@@ -79,9 +78,9 @@ class MediableTest extends TestCase
     public function test_it_can_find_media_matching_multiple_tags()
     {
         $mediable = factory(SampleMediable::class)->create();
-        $media1 = factory(Media::class)->create(['id' => 1]);
-        $media2 = factory(Media::class)->create(['id' => 2]);
-        $media3 = factory(Media::class)->create(['id' => 3]);
+        $media1 = factory(Media::class)->create(['_id' => 1]);
+        $media2 = factory(Media::class)->create(['_id' => 2]);
+        $media3 = factory(Media::class)->create(['_id' => 3]);
 
         $mediable->attachMedia($media1, 'foo');
         $mediable->attachMedia($media1, 'bar');
@@ -95,8 +94,8 @@ class MediableTest extends TestCase
     public function test_it_can_check_presence_of_attached_media()
     {
         $mediable = factory(SampleMediable::class)->create();
-        $media1 = factory(Media::class)->create(['id' => 1]);
-        $media2 = factory(Media::class)->create(['id' => 2]);
+        $media1 = factory(Media::class)->create(['_id' => 1]);
+        $media2 = factory(Media::class)->create(['_id' => 2]);
 
         $mediable->attachMedia($media1, 'foo');
         $mediable->attachMedia($media2, 'foo');
@@ -137,15 +136,15 @@ class MediableTest extends TestCase
     public function test_it_can_detach_media_of_multiple_tags()
     {
         $mediable = factory(SampleMediable::class)->create();
-        $media1 = factory(Media::class)->create(['id'=>1]);
-        $media2 = factory(Media::class)->create(['id'=>2]);
+        $media1 = factory(Media::class)->create(['_id' => 1]);
+        $media2 = factory(Media::class)->create(['_id' => 2]);
     }
 
     public function test_it_can_sync_media_by_tag()
     {
         $mediable = factory(SampleMediable::class)->create();
-        $media1 = factory(Media::class)->create(['id' => 2]);
-        $media2 = factory(Media::class)->create(['id' => 3]);
+        $media1 = factory(Media::class)->create(['_id' => 2]);
+        $media2 = factory(Media::class)->create(['_id' => 3]);
 
         $mediable->attachMedia([$media1->id, $media2->id], 'foo');
         $mediable->attachMedia($media2, 'bar');
@@ -158,9 +157,9 @@ class MediableTest extends TestCase
     public function test_it_can_sync_media_to_multiple_tags()
     {
         $mediable = factory(SampleMediable::class)->create();
-        $media1 = factory(Media::class)->create(['id' => 1]);
-        $media2 = factory(Media::class)->create(['id' => 2]);
-        $media3 = factory(Media::class)->create(['id' => 3]);
+        $media1 = factory(Media::class)->create(['_id' => 1]);
+        $media2 = factory(Media::class)->create(['_id' => 2]);
+        $media3 = factory(Media::class)->create(['_id' => 3]);
 
         $mediable->attachMedia($media1, 'foo');
         $mediable->attachMedia($media1, 'bar');
@@ -174,6 +173,8 @@ class MediableTest extends TestCase
 
     public function test_it_can_be_queried_by_tag()
     {
+        $this->markTestIncomplete('not possible anymore with MorphMany.');
+
         $mediable = factory(SampleMediable::class)->create();
         $media = factory(Media::class)->create();
         $mediable->attachMedia($media, 'foo');
@@ -184,9 +185,11 @@ class MediableTest extends TestCase
 
     public function test_it_can_be_queried_by_tag_matching_all()
     {
+        $this->markTestIncomplete('not possible anymore with MorphMany.');
+
         $mediable = factory(SampleMediable::class)->create();
-        $media1 = factory(Media::class)->create(['id' => 1]);
-        $media2 = factory(Media::class)->create(['id' => 2]);
+        $media1 = factory(Media::class)->create(['_id' => 1]);
+        $media2 = factory(Media::class)->create(['_id' => 2]);
 
         $mediable->attachMedia($media1, ['foo', 'bar']);
         $mediable->attachMedia($media2, ['foo']);
@@ -231,8 +234,8 @@ class MediableTest extends TestCase
     public function test_it_can_eager_load_media_by_tag()
     {
         $mediable = factory(SampleMediable::class)->create();
-        $media1 = factory(Media::class)->create(['id' => 1]);
-        $media2 = factory(Media::class)->create(['id' => 2]);
+        $media1 = factory(Media::class)->create(['_id' => 1]);
+        $media2 = factory(Media::class)->create(['_id' => 2]);
         $mediable->attachMedia($media1, 'foo');
         $mediable->attachMedia($media2, 'bar');
 
@@ -245,14 +248,14 @@ class MediableTest extends TestCase
     public function test_it_can_eager_load_media_by_tag_matching_all()
     {
         $mediable = factory(SampleMediable::class)->create();
-        $media1 = factory(Media::class)->create(['id' => 1]);
-        $media2 = factory(Media::class)->create(['id' => 2]);
+        $media1 = factory(Media::class)->create(['_id' => 1]);
+        $media2 = factory(Media::class)->create(['_id' => 2]);
         $mediable->attachMedia($media1, 'foo');
         $mediable->attachMedia($media2, ['bar', 'foo', 'baz']);
 
         $result = SampleMediable::withMedia(['bar', 'foo'], true)->first();
         $this->assertTrue($result->relationLoaded('media'));
-        $this->assertEquals([2, 2], $result->media->pluck('id')->toArray());
+        $this->assertEquals([2], $result->media->pluck('id')->toArray());
     }
 
     public function test_it_can_lazy_eager_load_media()
@@ -269,8 +272,8 @@ class MediableTest extends TestCase
     public function test_it_can_lazy_eager_load_media_by_tag()
     {
         $mediable = factory(SampleMediable::class)->create();
-        $media1 = factory(Media::class)->create(['id' => 1]);
-        $media2 = factory(Media::class)->create(['id' => 2]);
+        $media1 = factory(Media::class)->create(['_id' => 1]);
+        $media2 = factory(Media::class)->create(['_id' => 2]);
         $mediable->attachMedia($media1, 'foo');
         $mediable->attachMedia($media2, 'bar');
 
@@ -283,15 +286,15 @@ class MediableTest extends TestCase
     public function test_it_can_lazy_eager_load_media_by_tag_matching_all()
     {
         $mediable = factory(SampleMediable::class)->create();
-        $media1 = factory(Media::class)->create(['id' => 1]);
-        $media2 = factory(Media::class)->create(['id' => 2]);
+        $media1 = factory(Media::class)->create(['_id' => 1]);
+        $media2 = factory(Media::class)->create(['_id' => 2]);
         $mediable->attachMedia($media1, 'foo');
         $mediable->attachMedia($media2, ['bar', 'foo', 'baz']);
 
         $result = SampleMediable::first();
         $this->assertSame($result, $result->loadMedia(['bar', 'foo'], true));
         $this->assertTrue($result->relationLoaded('media'));
-        $this->assertEquals([2, 2], $result->media->pluck('id')->toArray());
+        $this->assertEquals([2], $result->media->pluck('id')->toArray());
     }
 
     public function test_it_uses_custom_collection()
@@ -341,53 +344,5 @@ class MediableTest extends TestCase
 
         $mediable->forceDelete();
         $this->assertEquals(0, $mediable->getMedia('foo')->count());
-    }
-
-    public function test_it_reads_highest_order()
-    {
-        $mediable = factory(SampleMediable::class)->create();
-        $media = factory(Media::class)->create(['id' => 1]);
-        $method = $this->getPrivateMethod($mediable, 'getOrderValueForTags');
-
-        $this->assertEquals(['foo' => 0], $method->invoke($mediable, 'foo'));
-        $mediable->attachMedia($media, 'foo');
-        $this->assertEquals(['foo' => 1], $method->invoke($mediable, 'foo'));
-    }
-
-    public function test_it_increments_order()
-    {
-        $mediable = factory(SampleMediable::class)->create();
-        $media1 = factory(Media::class)->create(['id' => 1]);
-        $media2 = factory(Media::class)->create(['id' => 2]);
-        $media3 = factory(Media::class)->create(['id' => 3]);
-
-        $mediable->attachMedia($media2, 'foo');
-        $mediable->attachMedia($media3, 'foo');
-        $mediable->attachMedia($media1, 'bar');
-        $mediable->attachMedia($media1, 'foo');
-
-        $this->assertEquals([2 => 1, 3 => 2, 1 => 3], $mediable->getMedia('foo')->pluck('pivot.order', 'id')->toArray());
-        $this->assertEquals([1 => 1], $mediable->getMedia('bar')->pluck('pivot.order', 'id')->toArray());
-    }
-
-    public function test_it_increments_order_when_attaching_multiple()
-    {
-        $mediable = factory(SampleMediable::class)->create();
-        $media1 = factory(Media::class)->create(['id' => 1]);
-        $media2 = factory(Media::class)->create(['id' => 2]);
-        $media3 = factory(Media::class)->create(['id' => 3]);
-
-        $mediable->attachMedia([2, 3, 1], 'foo');
-
-        $this->assertEquals([2 => 1, 3 => 2, 1 => 3], $mediable->getMedia('foo')->pluck('pivot.order', 'id')->toArray());
-    }
-
-    public function test_it_can_unset_order()
-    {
-        $mediable = factory(SampleMediable::class)->make();
-
-        $query = $mediable->media()->unordered()->toSql();
-
-        $this->assertNotRegExp('/order by `order`/i', $query);
     }
 }

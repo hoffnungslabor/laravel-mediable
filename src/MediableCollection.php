@@ -2,9 +2,9 @@
 
 namespace Plank\Mediable;
 
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Closure;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 /**
  * Collection of Mediable Models.
@@ -15,14 +15,14 @@ class MediableCollection extends Collection
 {
     /**
      * Lazy eager load media attached to items in the collection.
-     * @param  array  $tags
+     * @param  array $tags
      * If one or more tags are specified, only media attached to those tags will be loaded.
      * @param bool $match_all If true, only load media attached to all tags simultaneously
      * @return $this
      */
     public function loadMedia($tags = [], $match_all = false)
     {
-        $tags = (array) $tags;
+        $tags = (array)$tags;
 
         if (empty($tags)) {
             return $this->load('media');
@@ -32,8 +32,8 @@ class MediableCollection extends Collection
             return $this->loadMediaMatchAll($tags);
         }
 
-        $closure = function (MorphToMany $q) use ($tags) {
-            $this->wherePivotTagIn($q, $tags);
+        $closure = function (MorphMany $q) use ($tags) {
+            $q->whereIn('tags', $tags);
         };
         $closure = Closure::bind($closure, $this->first(), $this->first());
 
@@ -42,14 +42,14 @@ class MediableCollection extends Collection
 
     /**
      * Lazy eager load media attached to items in the collection bound all of the provided tags simultaneously.
-     * @param  array  $tags
+     * @param  array $tags
      * If one or more tags are specified, only media attached to those tags will be loaded.
      * @return $this
      */
     public function loadMediaMatchAll($tags = [])
     {
-        $tags = (array) $tags;
-        $closure = function (MorphToMany $q) use ($tags) {
+        $tags = (array)$tags;
+        $closure = function (MorphMany $q) use ($tags) {
             $this->addMatchAllToEagerLoadQuery($q, $tags);
         };
         $closure = Closure::bind($closure, $this->first(), $this->first());
