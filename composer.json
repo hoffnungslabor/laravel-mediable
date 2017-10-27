@@ -15,12 +15,6 @@
       "email": "sean@plankdesign.com"
     }
   ],
-  "repositories": [
-    {
-      "type": "vcs",
-      "url": "https://github.com/D3nnisH/laravel-mongodb"
-    }
-  ],
   "require": {
     "php": ">=5.4.0",
     "ext-mongodb": "*",
@@ -28,8 +22,7 @@
     "illuminate/filesystem": "^5.2.0",
     "illuminate/database": "^5.2.0",
     "league/flysystem": "^1.0.8",
-    "psr/http-message": "^1.0",
-    "jenssegers/mongodb": "dev-master"
+    "psr/http-message": "^1.0"
   },
   "require-dev": {
     "orchestra/testbench": "^3.0",
