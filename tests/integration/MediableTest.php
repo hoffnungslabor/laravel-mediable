@@ -60,6 +60,18 @@ class MediableTest extends TestCase
         $this->assertEquals(1, $mediable->firstMedia('foo')->id);
     }
 
+    public function test_it_can_find_the_last_media()
+    {
+        $mediable = factory(SampleMediable::class)->create();
+        $media1 = factory(Media::class)->create(['_id' => 1]);
+        $media2 = factory(Media::class)->create(['_id' => 2]);
+
+        $mediable->attachMedia($media1, 'foo');
+        $mediable->attachMedia($media2, 'foo');
+
+        $this->assertEquals(2, $mediable->lastMedia('foo')->id);
+    }
+
     public function test_it_can_find_media_matching_any_tags()
     {
         $mediable = factory(SampleMediable::class)->create();
@@ -136,8 +148,14 @@ class MediableTest extends TestCase
     public function test_it_can_detach_media_of_multiple_tags()
     {
         $mediable = factory(SampleMediable::class)->create();
-        $media1 = factory(Media::class)->create(['_id' => 1]);
-        $media2 = factory(Media::class)->create(['_id' => 2]);
+        $media = factory(Media::class)->create(['_id'=>1]);
+        $mediable->attachMedia($media, 'foo');
+        $mediable->attachMedia($media, 'bar');
+
+        $mediable->detachMedia($media, ['foo', 'bar']);
+
+        $this->assertEquals(0, $mediable->getMedia('foo')->count());
+        $this->assertEquals(0, $mediable->getMedia('bar')->count());
     }
 
     public function test_it_can_sync_media_by_tag()

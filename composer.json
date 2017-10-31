@@ -43,5 +43,15 @@
     ]
   },
   "minimum-stability": "stable",
-  "prefer-stable": true
+  "prefer-stable": true,
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Plank\\Mediable\\MediableServiceProvider"
+            ],
+            "aliases": {
+                "MediaUploader": "Plank\\Mediable\\MediaUploaderFacade"
+            }
+        }
+    }
 }

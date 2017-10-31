@@ -46,23 +46,9 @@ class Media extends Model
         parent::boot();
 
         //remove file on deletion
-        static::deleting(function (Media $media) {
+        static::deleted(function (Media $media) {
             $media->handleMediaDeletion();
         });
-    }
-
-    protected function handleMediaDeletion()
-    {
-        // optionally detach mediable relationships on soft delete
-        if (static::hasGlobalScope(SoftDeletingScope::class) && !$this->forceDeleting) {
-            if (config('mediable.detach_on_soft_delete')) {
-                $this->model()->dissociate();
-                $this->save();
-            }
-            // unlink associated file on delete
-        } elseif ($this->storage()->has($this->getDiskPath())) {
-            $this->storage()->delete($this->getDiskPath());
-        }
     }
 
     /**
@@ -72,24 +58,6 @@ class Media extends Model
     public function model()
     {
         return $this->morphTo('mediable');
-    }
-
-    /**
-     * Get the filesystem object for this media.
-     * @return \Illuminate\Contracts\Filesystem\Filesystem
-     */
-    protected function storage()
-    {
-        return app('filesystem')->disk($this->disk);
-    }
-
-    /**
-     * Get the path to the file relative to the root of the disk.
-     * @return string
-     */
-    public function getDiskPath()
-    {
-        return ltrim(rtrim($this->directory, '/') . '/' . ltrim($this->basename, '/'), '/');
     }
 
     /**
@@ -183,21 +151,21 @@ class Media extends Model
     }
 
     /**
+     * Get the path to the file relative to the root of the disk.
+     * @return string
+     */
+    public function getDiskPath()
+    {
+        return ltrim(rtrim($this->directory, '/').'/'.ltrim($this->basename, '/'), '/');
+    }
+
+    /**
      * Get the absolute filesystem path to the file.
      * @return string
      */
     public function getAbsolutePath()
     {
         return $this->getUrlGenerator()->getAbsolutePath();
-    }
-
-    /**
-     * Get a UrlGenerator instance for the media.
-     * @return \Plank\Mediable\UrlGenerators\UrlGenerator
-     */
-    protected function getUrlGenerator()
-    {
-        return app('mediable.url.factory')->create($this);
     }
 
     /**
@@ -238,6 +206,19 @@ class Media extends Model
     }
 
     /**
+     * Move the file to a new location on disk.
+     *
+     * Will invoke the `save()` method on the model after the associated file has been moved to prevent synchronization errors
+     * @param  string $destination directory relative to disk root
+     * @param  string $filename    filename. Do not include extension
+     * @return void
+     */
+    public function move($destination, $filename = null)
+    {
+        app('mediable.mover')->move($this, $destination, $filename);
+    }
+
+    /**
      * Rename the file in place.
      * @param  string $name
      * @return void
@@ -246,19 +227,6 @@ class Media extends Model
     public function rename($filename)
     {
         $this->move($this->directory, $filename);
-    }
-
-    /**
-     * Move the file to a new location on disk.
-     *
-     * Will invoke the `save()` method on the model after the associated file has been moved to prevent synchronization errors
-     * @param  string $destination directory relative to disk root
-     * @param  string $filename filename. Do not include extension
-     * @return void
-     */
-    public function move($destination, $filename = null)
-    {
-        app('mediable.mover')->move($this, $destination, $filename);
     }
 
     public function addTags($tags)
@@ -271,5 +239,37 @@ class Media extends Model
     {
         $tags = (array)$tags;
         $this->tags = is_array($this->tags) ? array_values(array_diff($this->tags, $tags)) : [];
+    }
+
+    protected function handleMediaDeletion()
+    {
+        // optionally detach mediable relationships on soft delete
+        if (static::hasGlobalScope(SoftDeletingScope::class) && !$this->forceDeleting) {
+            if (config('mediable.detach_on_soft_delete')) {
+                $this->model()->dissociate();
+                $this->save();
+            }
+            // unlink associated file on delete
+        } elseif ($this->storage()->has($this->getDiskPath())) {
+            $this->storage()->delete($this->getDiskPath());
+        }
+    }
+
+    /**
+     * Get the filesystem object for this media.
+     * @return \Illuminate\Contracts\Filesystem\Filesystem
+     */
+    protected function storage()
+    {
+        return app('filesystem')->disk($this->disk);
+    }
+
+    /**
+     * Get a UrlGenerator instance for the media.
+     * @return \Plank\Mediable\UrlGenerators\UrlGenerator
+     */
+    protected function getUrlGenerator()
+    {
+        return app('mediable.url.factory')->create($this);
     }
 }
