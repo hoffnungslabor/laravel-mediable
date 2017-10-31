@@ -460,11 +460,15 @@ trait Mediable
         // only cascade soft deletes when configured
         if (static::hasGlobalScope(SoftDeletingScope::class) && !$this->forceDeleting) {
             if (config('mediable.detach_on_soft_delete')) {
-                $this->media()->delete();
+                $this->media()->each(function ($medium) {
+                    $medium->delete();
+                });
             }
             // always cascade for hard deletes
         } else {
-            $this->media()->delete();
+            $this->media()->each(function ($medium) {
+                $medium->delete();
+            });
         }
     }
 
