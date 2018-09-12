@@ -20,6 +20,11 @@ use Plank\Mediable\Helpers\File;
  * @property string aggregate_type
  * @property array tags
  *
+ * @method static \Illuminate\Database\Eloquent\Builder|\Plank\Mediable\Media forPathOnDisk(string $disk, string $path)
+ * @method static \Illuminate\Database\Eloquent\Builder|\Plank\Mediable\Media inDirectory(string $disk, string $directory, bool $recursive = false)
+ * @method static \Illuminate\Database\Eloquent\Builder|\Plank\Mediable\Media inOrUnderDirectory(string $disk, string $directory)
+ * @method static \Illuminate\Database\Eloquent\Builder|\Plank\Mediable\Media unordered()
+ * @method static \Illuminate\Database\Eloquent\Builder|\Plank\Mediable\Media whereBasename(string $basename)
  * @author Sean Fraser <sean@plankdesign.com>
  */
 class Media extends Model
@@ -219,8 +224,21 @@ class Media extends Model
     }
 
     /**
+     * Copy the file from one Media object to another one.
+     *
+     * Will invoke the `save()` method on the model after the associated file has been copied to prevent synchronization errors
+     * @param  string $destination directory relative to disk root
+     * @param  string $filename    optional filename. Do not include extension
+     * @return \Plank\Mediable\Media
+     */
+    public function copyTo($destination, $filename = null)
+    {
+        return app('mediable.mover')->copyTo($this, $destination, $filename);
+    }
+
+    /**
      * Rename the file in place.
-     * @param  string $name
+     * @param  string $filename
      * @return void
      * @see \Plank\Mediable\Media::move()
      */
@@ -266,7 +284,7 @@ class Media extends Model
 
     /**
      * Get a UrlGenerator instance for the media.
-     * @return \Plank\Mediable\UrlGenerators\UrlGenerator
+     * @return \Plank\Mediable\UrlGenerators\UrlGeneratorInterface
      */
     protected function getUrlGenerator()
     {

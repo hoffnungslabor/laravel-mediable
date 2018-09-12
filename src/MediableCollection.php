@@ -15,14 +15,14 @@ class MediableCollection extends Collection
 {
     /**
      * Lazy eager load media attached to items in the collection.
-     * @param  array $tags
+     * @param  string|string[]  $tags
      * If one or more tags are specified, only media attached to those tags will be loaded.
      * @param bool $match_all If true, only load media attached to all tags simultaneously
      * @return $this
      */
     public function loadMedia($tags = [], $match_all = false)
     {
-        $tags = (array)$tags;
+        $tags = (array) $tags;
 
         if (empty($tags)) {
             return $this->load('media');
@@ -42,13 +42,13 @@ class MediableCollection extends Collection
 
     /**
      * Lazy eager load media attached to items in the collection bound all of the provided tags simultaneously.
-     * @param  array $tags
+     * @param  string|string[]  $tags
      * If one or more tags are specified, only media attached to those tags will be loaded.
      * @return $this
      */
     public function loadMediaMatchAll($tags = [])
     {
-        $tags = (array)$tags;
+        $tags = (array) $tags;
         $closure = function (MorphMany $q) use ($tags) {
             $this->addMatchAllToEagerLoadQuery($q, $tags);
         };

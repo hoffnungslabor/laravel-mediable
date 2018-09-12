@@ -12,7 +12,7 @@ class TestCase extends BaseTestCase
     public function setUp()
     {
         parent::setUp();
-        $this->withFactories(__DIR__ . '/_factories');
+        $this->withFactories(__DIR__.'/_factories');
     }
 
     protected function getPackageProviders($app)
@@ -68,12 +68,12 @@ class TestCase extends BaseTestCase
             'public_storage' => [
                 'driver' => 'local',
                 'root' => storage_path('public'),
+                'url' => 'http://localhost/storage',
                 'visibility' => 'public',
-                'prefix' => 'prefix'
             ],
             's3' => [
                 'driver' => 's3',
-                'key' => env('S3_KEY'),
+                'key'    => env('S3_KEY'),
                 'secret' => env('S3_SECRET'),
                 'region' => env('S3_REGION'),
                 'bucket' => env('S3_BUCKET'),
@@ -122,14 +122,6 @@ class TestCase extends BaseTestCase
         $artisan->call('migrate:refresh');
     }
 
-    protected function useFilesystems()
-    {
-        $disks = $this->app['config']->get('filesystems.disks');
-        foreach ($disks as $disk) {
-            $this->useFilesystem($disk);
-        }
-    }
-
     protected function useFilesystem($disk)
     {
         if (!$this->app['config']->has('filesystems.disks.' . $disk)) {
@@ -138,5 +130,13 @@ class TestCase extends BaseTestCase
         $root = $this->app['config']->get('filesystems.disks.' . $disk . '.root');
         $filesystem = $this->app->make(Filesystem::class);
         $filesystem->cleanDirectory($root);
+    }
+
+    protected function useFilesystems()
+    {
+        $disks = $this->app['config']->get('filesystems.disks');
+        foreach ($disks as $disk) {
+            $this->useFilesystem($disk);
+        }
     }
 }

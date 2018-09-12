@@ -9,6 +9,6 @@ class SampleMediableSoftDelete extends Model
     use Mediable;
     use SoftDeletes;
 
-    public $rehydrates_media = true;
     protected $table = 'sample_mediables';
+    public $rehydrates_media = true;
 }

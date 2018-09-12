@@ -44,7 +44,7 @@ class MediaUploader
 
     /**
      * Source adapter.
-     * @var
+     * @var \Plank\Mediable\SourceAdapters\SourceAdapterInterface
      */
     private $source;
 
@@ -62,7 +62,7 @@ class MediaUploader
 
     /**
      * Name of the new file.
-     * @var string
+     * @var string|null
      */
     private $filename = null;
 
@@ -71,6 +71,12 @@ class MediaUploader
      * @var bool
      */
     private $hash_filename = false;
+
+    /**
+     * Callable allowing to alter the model before save.
+     * @var callable
+     */
+    private $before_save;
 
     /**
      * Constructor.
@@ -287,9 +293,9 @@ class MediaUploader
 
     /**
      * Add or update the definition of a aggregate type.
-     * @param string $type       the name of the type
-     * @param array  $mime_types list of MIME types recognized
-     * @param array  $extensions list of file extensions recognized
+     * @param string           $type       the name of the type
+     * @param string|string[]  $mime_types list of MIME types recognized
+     * @param string|string[]  $extensions list of file extensions recognized
      * @return static
      */
     public function setTypeDefinition($type, $mime_types, $extensions)
@@ -304,24 +310,24 @@ class MediaUploader
 
     /**
      * Set a list of MIME types that the source file must be restricted to.
-     * @param array $allowed_mimes
+     * @param string|string[] $allowed_mimes
      * @return static
      */
     public function setAllowedMimeTypes($allowed_mimes)
     {
-        $this->config['allowed_mime_types'] = array_map('strtolower', (array)$allowed_mimes);
+        $this->config['allowed_mime_types'] = array_map('strtolower', (array) $allowed_mimes);
 
         return $this;
     }
 
     /**
      * Set a list of file extensions that the source file must be restricted to.
-     * @param array $allowed_extensions
+     * @param string|string[] $allowed_extensions
      * @return static
      */
     public function setAllowedExtensions($allowed_extensions)
     {
-        $this->config['allowed_extensions'] = array_map('strtolower', (array)$allowed_extensions);
+        $this->config['allowed_extensions'] = array_map('strtolower', (array) $allowed_extensions);
 
         return $this;
     }
@@ -384,7 +390,7 @@ class MediaUploader
     /**
      * Determine the aggregate type of the file based on the MIME type.
      * @param  string $mime
-     * @return string
+     * @return string[]
      */
     public function possibleAggregateTypesForMimeType($mime)
     {
@@ -401,7 +407,7 @@ class MediaUploader
     /**
      * Determine the aggregate type of the file based on the extension.
      * @param  string $extension
-     * @return string|null
+     * @return string[]
      */
     public function possibleAggregateTypesForExtension($extension)
     {
@@ -423,13 +429,14 @@ class MediaUploader
      */
     public function upload()
     {
-        $this->verifySource();
+        $this->verifyFile();
 
         $model = $this->makeModel();
 
-        $model->size = $this->verifyFileSize($this->source->size());
-        $model->mime_type = $this->verifyMimeType($this->source->mimeType());
-        $model->extension = $this->verifyExtension($this->source->extension());
+        $model->size = $this->source->size();
+        $model->mime_type = $this->source->mimeType();
+        $model->extension = $this->source->extension();
+
         $model->aggregate_type = $this->inferAggregateType($model->mime_type, $model->extension);
 
         $model->disk = $this->disk ?: $this->config['default_disk'];
@@ -438,10 +445,25 @@ class MediaUploader
 
         $this->verifyDestination($model);
 
+        if (is_callable($this->before_save)) {
+            call_user_func($this->before_save, $model, $this->source);
+        }
+
         $this->filesystem->disk($model->disk)->put($model->getDiskPath(), $this->source->contents());
         $model->save();
 
         return $model;
+    }
+
+    /**
+     * Set the before save callback
+     * @param callable $callable
+     * @return static
+     */
+    public function beforeSave(callable $callable)
+    {
+        $this->before_save = $callable;
+        return $this;
     }
 
     /**
@@ -466,7 +488,7 @@ class MediaUploader
      * @param  string $filename
      * @param  string $extension
      * @return \Plank\Mediable\Media
-     * @throws \Plank\Mediable\Exceptions\MediaUploadFileNotFoundException If the file does not exist
+     * @throws \Plank\Mediable\Exceptions\MediaUpload\FileNotFoundException If the file does not exist
      */
     public function import($disk, $directory, $filename, $extension)
     {
@@ -510,6 +532,23 @@ class MediaUploader
         }
 
         return $dirty;
+    }
+
+    /**
+     * Verify if file is valid
+     * @throws \Plank\Mediable\Exceptions\MediaUpload\ConfigurationException If no source is provided
+     * @throws \Plank\Mediable\Exceptions\MediaUpload\FileNotFoundException If the source is invalid
+     * @throws \Plank\Mediable\Exceptions\MediaUpload\FileSizeException If the file is too large
+     * @throws \Plank\Mediable\Exceptions\MediaUpload\FileNotSupportedException If the mime type is not allowed
+     * @throws \Plank\Mediable\Exceptions\MediaUpload\FileNotSupportedException If the file extension is not allowed
+     * @return void
+     */
+    public function verifyFile()
+    {
+        $this->verifySource();
+        $this->verifyFileSize($this->source->size());
+        $this->verifyMimeType($this->source->mimeType());
+        $this->verifyExtension($this->source->extension());
     }
 
     /**
@@ -661,16 +700,19 @@ class MediaUploader
     /**
      * Increment model's filename until one is found that doesn't already exist.
      * @param  \Plank\Mediable\Media $model
-     * @return void
+     * @return string
      */
     private function generateUniqueFilename(Media $model)
     {
         $storage = $this->filesystem->disk($model->disk);
         $counter = 0;
         do {
-            ++$counter;
-            $filename = "{$model->filename} ({$counter})";
+            $filename = "{$model->filename}";
+            if ($counter > 0) {
+                $filename .= '-' . $counter;
+            }
             $path = "{$model->directory}/{$filename}.{$model->extension}";
+            ++$counter;
         } while ($storage->has($path));
 
         return $filename;
