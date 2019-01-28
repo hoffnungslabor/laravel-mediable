@@ -93,8 +93,11 @@ class MediaUploader
 
     /**
      * Set the source for the file.
+     *
      * @param  mixed $source
+     *
      * @return static
+     * @throws \Plank\Mediable\Exceptions\MediaUpload\ConfigurationException
      */
     public function fromSource($source)
     {
@@ -117,9 +120,13 @@ class MediaUploader
 
     /**
      * Set the filesystem disk and relative directory where the file will be saved.
+     *
      * @param  string $disk
      * @param  string $directory
+     *
      * @return static
+     * @throws \Plank\Mediable\Exceptions\MediaUpload\ConfigurationException
+     * @throws \Plank\Mediable\Exceptions\MediaUpload\ForbiddenException
      */
     public function toDestination($disk, $directory)
     {
@@ -128,8 +135,12 @@ class MediaUploader
 
     /**
      * Set the filesystem disk on which the file will be saved.
+     *
      * @param string $disk
+     *
      * @return static
+     * @throws \Plank\Mediable\Exceptions\MediaUpload\ConfigurationException
+     * @throws \Plank\Mediable\Exceptions\MediaUpload\ForbiddenException
      */
     public function toDisk($disk)
     {
@@ -425,7 +436,13 @@ class MediaUploader
      * Process the file upload.
      *
      * Validates the source, then stores the file onto the disk and creates and stores a new Media instance.
+     *
      * @return \Plank\Mediable\Media
+     * @throws \Plank\Mediable\Exceptions\MediaUpload\ConfigurationException
+     * @throws \Plank\Mediable\Exceptions\MediaUpload\FileExistsException
+     * @throws \Plank\Mediable\Exceptions\MediaUpload\FileNotFoundException
+     * @throws \Plank\Mediable\Exceptions\MediaUpload\FileNotSupportedException
+     * @throws \Plank\Mediable\Exceptions\MediaUpload\FileSizeException
      */
     public function upload()
     {
@@ -468,9 +485,16 @@ class MediaUploader
 
     /**
      * Create a `Media` record for a file already on a disk.
+     *
      * @param  string $disk
      * @param  string $path Path to file, relative to disk root
+     *
      * @return \Plank\Mediable\Media
+     * @throws \Plank\Mediable\Exceptions\MediaUpload\ConfigurationException
+     * @throws \Plank\Mediable\Exceptions\MediaUpload\FileNotFoundException
+     * @throws \Plank\Mediable\Exceptions\MediaUpload\FileNotSupportedException
+     * @throws \Plank\Mediable\Exceptions\MediaUpload\FileSizeException
+     * @throws \Plank\Mediable\Exceptions\MediaUpload\ForbiddenException
      */
     public function importPath($disk, $path)
     {
@@ -483,12 +507,18 @@ class MediaUploader
 
     /**
      * Create a `Media` record for a file already on a disk.
+     *
      * @param  string $disk
      * @param  string $directory
      * @param  string $filename
      * @param  string $extension
+     *
      * @return \Plank\Mediable\Media
+     * @throws \Plank\Mediable\Exceptions\MediaUpload\ConfigurationException
      * @throws \Plank\Mediable\Exceptions\MediaUpload\FileNotFoundException If the file does not exist
+     * @throws \Plank\Mediable\Exceptions\MediaUpload\FileNotSupportedException
+     * @throws \Plank\Mediable\Exceptions\MediaUpload\FileSizeException
+     * @throws \Plank\Mediable\Exceptions\MediaUpload\ForbiddenException
      */
     public function import($disk, $directory, $filename, $extension)
     {
@@ -516,8 +546,12 @@ class MediaUploader
 
     /**
      * Reanalyze a media record's file and adjust the aggregate type and size, if necessary.
-     * @param  \Plank\Mediable\Media  $media
+     *
+     * @param  \Plank\Mediable\Media $media
+     *
      * @return bool Whether the model was modified
+     * @throws \Plank\Mediable\Exceptions\MediaUpload\FileNotSupportedException
+     * @throws \Plank\Mediable\Exceptions\MediaUpload\FileSizeException
      */
     public function update(Media $media)
     {
@@ -662,8 +696,9 @@ class MediaUploader
 
     /**
      * Decide what to do about duplicated files.
-     * @param  \Plank\Mediable\Media  $model
-     * @return void
+     *
+     * @param  \Plank\Mediable\Media $model
+     * @return \Plank\Mediable\Media
      * @throws \Plank\Mediable\Exceptions\MediaUpload\FileExistsException If directory is not writable or file already exists at the destination and on_duplicate is set to 'error'
      */
     private function handleDuplicate(Media $model)
