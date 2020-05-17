@@ -1,6 +1,10 @@
 <?php
 
-$factory->define(Plank\Mediable\Media::class, function (Faker\Generator $faker) {
+/* @var \Illuminate\Database\Eloquent\Factory $factory */
+
+use Plank\Mediable\Media;
+
+$factory->define(Media::class, static function (Faker\Generator $faker) {
     $types = config('mediable.aggregate_types');
     $type = $faker->randomElement(array_keys($types));
 
@@ -15,7 +19,7 @@ $factory->define(Plank\Mediable\Media::class, function (Faker\Generator $faker) 
     ];
 });
 
-$factory->define(MediaSoftDelete::class, function (Faker\Generator $faker) {
+$factory->define(MediaSoftDelete::class, static function (Faker\Generator $faker) {
     $types = config('mediable.aggregate_types');
     $type = $faker->randomElement(array_keys($types));
 
@@ -30,10 +34,10 @@ $factory->define(MediaSoftDelete::class, function (Faker\Generator $faker) {
     ];
 });
 
-$factory->define(SampleMediable::class, function (Faker\Generator $faker) {
+$factory->define(SampleMediable::class, static function (Faker\Generator $faker) {
     return [];
 });
 
-$factory->define(SampleMediableSoftDelete::class, function (Faker\Generator $faker) {
+$factory->define(SampleMediableSoftDelete::class, static function (Faker\Generator $faker) {
     return [];
 });

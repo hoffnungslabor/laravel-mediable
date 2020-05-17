@@ -7,12 +7,12 @@ use Plank\Mediable\Media;
 
 class TestCase extends BaseTestCase
 {
-    protected $queriesCount;
+    protected const TEST_FILE_SIZE = 7173;
 
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
-        $this->withFactories(__DIR__.'/_factories');
+        $this->withFactories(__DIR__ . '/_factories');
     }
 
     protected function getPackageProviders($app)
@@ -26,44 +26,46 @@ class TestCase extends BaseTestCase
     protected function getPackageAliases($app)
     {
         return [
-            'MediaUploader' => 'Plank\Mediable\MediaUploaderFacade',
+            'MediaUploader' => \Plank\Mediable\MediaUploaderFacade::class,
         ];
     }
 
     protected function getEnvironmentSetUp($app)
     {
         if (file_exists(dirname(__DIR__) . '/.env')) {
-            $dotenv = new Dotenv\Dotenv(dirname(__DIR__));
-            $dotenv->load();
+            Dotenv\Dotenv::create(dirname(__DIR__))->load();
         }
-
+        //use mongodb database
         $app['config']->set('database.connections.testing', [
             'driver' => 'mongodb',
             'host' => 'localhost',
             'port' => 27017,
-            'database' => 'admin',
+            'database' => 'mediable',
             'username' => 'admin',
-            'password' => 'RfLD),5+7noAsd',
+            'password' => 'admin',
             'options' => [
-                'database' => 'admin',
+                'database' => 'mediable',
             ],
             'driver_options' => [
-                'database' => 'admin',
+                'database' => 'mediable',
                 'authMechanism' => 'SCRAM-SHA-1',
             ],
         ]);
         $app['config']->set('database.default', 'testing');
-
+        $app['config']->set('filesystems.default', 'uploads');
         $app['config']->set('filesystems.disks', [
             //private local storage
             'tmp' => [
                 'driver' => 'local',
                 'root' => storage_path('tmp'),
+                'visibility' => 'private'
             ],
             //public local storage
             'uploads' => [
                 'driver' => 'local',
                 'root' => public_path('uploads'),
+                'url' => 'http://localhost/uploads',
+                'visibility' => 'public'
             ],
             'public_storage' => [
                 'driver' => 'local',
@@ -73,7 +75,7 @@ class TestCase extends BaseTestCase
             ],
             's3' => [
                 'driver' => 's3',
-                'key'    => env('S3_KEY'),
+                'key' => env('S3_KEY'),
                 'secret' => env('S3_SECRET'),
                 'region' => env('S3_REGION'),
                 'bucket' => env('S3_BUCKET'),
@@ -106,7 +108,11 @@ class TestCase extends BaseTestCase
 
     protected function seedFileForMedia(Media $media, $contents = '')
     {
-        app('filesystem')->disk($media->disk)->put($media->getDiskPath(), $contents);
+        app('filesystem')->disk($media->disk)->put(
+            $media->getDiskPath(),
+            $contents,
+            config("filesystems.disks.{$media->disk}.visibility")
+        );
     }
 
     protected function s3ConfigLoaded()
@@ -138,5 +144,35 @@ class TestCase extends BaseTestCase
         foreach ($disks as $disk) {
             $this->useFilesystem($disk);
         }
+    }
+
+    protected function sampleFilePath()
+    {
+        return realpath(__DIR__ . '/_data/plank.png');
+    }
+
+    protected function alternateFilePath()
+    {
+        return realpath(__DIR__ . '/_data/plank2.png');
+    }
+
+    protected function remoteFilePath()
+    {
+        return 'https://www.plankdesign.com/externaluse/plank.png';
+    }
+
+    protected function sampleFile()
+    {
+        return fopen($this->sampleFilePath(), 'r');
+    }
+
+    protected function makeMedia(array $attributes = []): Media
+    {
+        return factory(Media::class)->make($attributes);
+    }
+
+    protected function createMedia(array $attributes = []): Media
+    {
+        return factory(Media::class)->create($attributes);
     }
 }

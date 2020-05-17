@@ -10,21 +10,25 @@
         }
     ],
     "require": {
-        "php": ">=5.4.0",
+        "php": ">=7.2.0",
         "ext-mongodb": "*",
-        "illuminate/support": "^5.5.0",
-        "illuminate/filesystem": "^5.5.0",
-        "illuminate/database": "^5.5.0",
-        "league/flysystem": "^1.0.8",
+        "ext-fileinfo": "*",
+        "illuminate/support": "^5.6|^6.0|^7.0",
+        "illuminate/filesystem": "^5.6|^6.0|^7.0",
+        "illuminate/database": "^5.6|^6.0|^7.0",
+        "league/flysystem": "~1.0.23",
         "psr/http-message": "^1.0"
     },
     "require-dev": {
-        "orchestra/testbench": "^3.5.2",
-        "phpunit/phpunit": "^6.0",
-        "vlucas/phpdotenv": "^2.2",
-        "league/flysystem-aws-s3-v3": "^1.0.8",
-        "satooshi/php-coveralls": "^1.0.1",
-        "jenssegers/mongodb": "dev-master"
+        "aws/aws-sdk-php": "~3.29.0",
+        "guzzlehttp/guzzle": "^6.3",
+        "guzzlehttp/promises": "^1.3",
+        "jenssegers/mongodb": "~3.6.4",
+        "league/flysystem-aws-s3-v3": "~1.0.24",
+        "orchestra/testbench": "^3.3|^4.0|^5.0",
+        "php-coveralls/php-coveralls": "^2.2",
+        "phpunit/phpunit": "^8.0|^9.0",
+        "vlucas/phpdotenv": "^3.6"
     },
     "autoload": {
         "psr-4": {

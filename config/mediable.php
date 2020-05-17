@@ -9,6 +9,11 @@ return [
     'model' => Plank\Mediable\Media::class,
 
     /*
+     * Name to be used for mediables joining table
+     */
+    'mediables_table' => 'mediables',
+
+    /*
      * Filesystem disk to use if none is specified
      */
     'default_disk' => 'public',
@@ -173,17 +178,17 @@ return [
         ],
         Plank\Mediable\Media::TYPE_PRESENTATION => [
             'mime_types' =>
-            [
-                'application/vnd.ms-powerpoint',
-                'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-                'application/vnd.openxmlformats-officedocument.presentationml.slideshow'
-            ],
+                [
+                    'application/vnd.ms-powerpoint',
+                    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                    'application/vnd.openxmlformats-officedocument.presentationml.slideshow'
+                ],
             'extensions' =>
-            [
-                'ppt',
-                'pptx',
-                'ppsx',
-            ]
+                [
+                    'ppt',
+                    'pptx',
+                    'ppsx',
+                ]
         ],
     ],
 
@@ -201,7 +206,7 @@ return [
         'pattern' => [
             '^https?://' => Plank\Mediable\SourceAdapters\RemoteUrlAdapter::class,
             '^/' => Plank\Mediable\SourceAdapters\LocalPathAdapter::class,
-            '^[a-zA-Z]:\\' => Plank\Mediable\SourceAdapters\LocalPathAdapter::class
+            '^[a-zA-Z]:\\\\' => Plank\Mediable\SourceAdapters\LocalPathAdapter::class
         ],
     ],
 

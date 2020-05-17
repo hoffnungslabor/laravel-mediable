@@ -80,12 +80,16 @@ Occasionally, a file with a matching name might already exist at the destination
     // keep both, append incrementing counter to new file name
     $uploader->onDuplicateIncrement();
 
-    // replace old file with new one
+    // replace old file with new one, update existing Media record
+    $uploader->onDuplicateUpdate();
+
+    // replace old file and media record with new ones
     $uploader->onDuplicateReplace();
 
     // cancel upload, throw an exception
     $uploader->onDuplicateError();
 
+:note: In previous versions, ``onDuplicateReplace()`` behaved like ``onDuplicateDelete()``
 
 Validation
 --------------------
@@ -165,6 +169,19 @@ The callback takes two params, ``$model`` an instance of ``Plank\Mediable\Media
         ->upload()
 
 
+Visibility
+--------------------
+
+In addition to setting visibility on :ref:`Disks as a whole <disk_visibility>`, you can also specify whether a file should be publicly viewable on a file by file basic
+
+::
+
+    <?php
+    MediaUploader::fromSource($request->file('image'))
+        ->makePrivate() // Disable public access
+        ->makePublic() // Default behaviour
+        ->upload()
+
 Handling Exceptions
 --------------------
 
@@ -237,6 +254,20 @@ If you have string file data, you can import it using the `fromString` method.
     MediaUploader::fromString($jpg)
         ->toDestination(...)
         ->upload();
+
+Replacing Files
+--------------------
+
+If you need to swap out the file belonging to a ``Media`` record, you can use the ``replace()`` method. This will upload the file and update the existing record while maintaining any attachments to other models.
+
+::
+
+    <?php
+    $media = Media::find($id);
+
+    MediaUploader::fromSource($source)
+        ->replace($media);
+
 
 
 Updating Files

@@ -5,7 +5,7 @@ use Plank\Mediable\MediableCollection;
 
 class MediableCollectionTest extends TestCase
 {
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
         $this->useDatabase();
@@ -26,8 +26,8 @@ class MediableCollectionTest extends TestCase
     public function test_it_can_lazy_eager_load_media_by_tag()
     {
         $mediable = factory(SampleMediable::class)->create();
-        $media1 = factory(Media::class)->create(['id' => 1]);
-        $media2 = factory(Media::class)->create(['id' => 2]);
+        $media1 = factory(Media::class)->create(['_id' => 1]);
+        $media2 = factory(Media::class)->create(['_id' => 2]);
         $mediable->attachMedia($media1, 'foo');
         $mediable->attachMedia($media2, 'bar');
 
@@ -36,14 +36,14 @@ class MediableCollectionTest extends TestCase
 
         $this->assertSame($collection, $return);
         $this->assertTrue($collection[0]->relationLoaded('media'));
-        $this->assertEquals([2], $collection[0]->media->pluck('id')->toArray());
+        $this->assertEquals([2], $collection[0]->media->pluck('_id')->toArray());
     }
 
     public function test_it_can_lazy_eager_load_media_by_tag_match_all()
     {
         $mediable = factory(SampleMediable::class)->create();
-        $media1 = factory(Media::class)->create(['id' => 1]);
-        $media2 = factory(Media::class)->create(['id' => 2]);
+        $media1 = factory(Media::class)->create(['_id' => 1]);
+        $media2 = factory(Media::class)->create(['_id' => 2]);
         $mediable->attachMedia($media1, 'foo');
         $mediable->attachMedia($media2, ['foo', 'bar', 'baz']);
 
@@ -51,6 +51,6 @@ class MediableCollectionTest extends TestCase
         $collection = new MediableCollection([$result]);
         $this->assertSame($collection, $collection->loadMedia(['foo', 'bar'], true));
         $this->assertTrue($collection[0]->relationLoaded('media'));
-        $this->assertEquals([2, 2], $collection[0]->media->pluck('id')->toArray());
+        $this->assertEquals([2], $collection[0]->media->pluck('_id')->toArray());
     }
 }

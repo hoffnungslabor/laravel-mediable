@@ -1,128 +1,60 @@
 <?php
+declare(strict_types=1);
 
 namespace Plank\Mediable\UrlGenerators;
 
-use Plank\Mediable\Exceptions\MediaUrlException;
 use Illuminate\Contracts\Config\Repository as Config;
-use Illuminate\Routing\UrlGenerator as Url;
+use Illuminate\Contracts\Filesystem\Cloud;
+use Illuminate\Filesystem\FilesystemManager;
 
-/**
- * Local Url Generator.
- *
- * @author Sean Fraser <sean@plankdesign.com>
- */
 class LocalUrlGenerator extends BaseUrlGenerator
 {
     /**
-     * @var \Illuminate\Routing\UrlGenerator
+     * @var FilesystemManager
      */
-    protected $url;
+    protected $filesystem;
 
     /**
      * Constructor.
-     * @param \Illuminate\Contracts\Config\Repository $config
-     * @param \Illuminate\Routing\UrlGenerator        $url
+     * @param Config $config
+     * @param FilesystemManager $filesystem
      */
-    public function __construct(Config $config, Url $url)
+    public function __construct(Config $config, FilesystemManager $filesystem)
     {
         parent::__construct($config);
-        $this->url = $url;
+        $this->filesystem = $filesystem;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function isPubliclyAccessible()
+    public function isPubliclyAccessible(): bool
     {
-        return  parent::isPubliclyAccessible() || $this->isInWebroot();
-    }
-
-    /**
-     * Get the path to relative to the webroot.
-     * @return string
-     * @throws \Plank\Mediable\Exceptions\MediaUrlException If media's disk is not publicly accessible
-     */
-    public function getPublicPath()
-    {
-        if (! $this->isPubliclyAccessible()) {
-            throw MediaUrlException::mediaNotPubliclyAccessible($this->getAbsolutePath(), public_path());
-        }
-        if ($this->isInWebroot()) {
-            $path = str_replace(public_path(), '', $this->getAbsolutePath());
-        } else {
-            $path = rtrim($this->getPrefix(), '/').'/'.$this->media->getDiskPath();
-        }
-
-        return $this->cleanDirectorySeparators($path);
+        return ($this->getDiskConfig('visibility', 'private') == 'public' || $this->isInWebroot())
+            && $this->media->isVisible();
     }
 
     /**
      * {@inheritdoc}
      * @throws \Plank\Mediable\Exceptions\MediaUrlException If media's disk is not publicly accessible
      */
-    public function getUrl()
+    public function getUrl(): string
     {
-        $path = $this->getPublicPath();
-
-        $url = $this->getDiskConfig('url');
-
-        if ($url) {
-            if ($this->isInWebroot()) {
-                $path = $this->media->getDiskPath();
-            }
-
-            return rtrim($url, '/').'/'.trim($path, '/');
-        }
-
-        return $this->url->asset($path);
+        /** @var Cloud $filesystem */
+        $filesystem = $this->filesystem->disk($this->media->disk);
+        return $filesystem->url($this->media->getDiskPath());
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getAbsolutePath()
+    public function getAbsolutePath(): string
     {
-        return $this->getDiskConfig('root').DIRECTORY_SEPARATOR.$this->media->getDiskPath();
+        return $this->getDiskConfig('root') . DIRECTORY_SEPARATOR . $this->media->getDiskPath();
     }
 
-    /**
-     * Correct directory separator slashes on non-unix systems.
-     * @param  string $path
-     * @return string
-     */
-    protected function cleanDirectorySeparators($path)
-    {
-        if (DIRECTORY_SEPARATOR != '/') {
-            $path = str_replace(DIRECTORY_SEPARATOR, '/', $path);
-        }
-
-        return $path;
-    }
-
-    private function isInWebroot()
+    private function isInWebroot(): bool
     {
         return strpos($this->getAbsolutePath(), public_path()) === 0;
-    }
-
-    /**
-     * Get the prefix.
-     *
-     * If the prefix and the url are not set, we will assume the prefix
-     * is "storage", in order to point to the default symbolink link.
-     *
-     * Otherwise, we will trust the user has correctly set the prefix and/or the url.
-     *
-     * @return string
-     */
-    private function getPrefix()
-    {
-        $prefix = $this->getDiskConfig('prefix', '');
-        $url = $this->getDiskConfig('url');
-
-        if (! $prefix && ! $url) {
-            return 'storage';
-        }
-
-        return $prefix;
     }
 }
