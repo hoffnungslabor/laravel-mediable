@@ -274,14 +274,12 @@ trait Mediable
         foreach ($media as $medium) {
             /** @var Media $medium */
             $medium->removeTags((array)$tags);
-            /*
+
             if (empty($medium->tags)) {
                 $medium->delete();
             } else {
                 $medium->save();
             }
-            */
-            $medium->save();
         }
         $this->markMediaDirty($tags);
     }
